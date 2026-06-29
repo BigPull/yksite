@@ -1,0 +1,60 @@
+# ============================================================
+#  YKsystems – Docker Compose
+#  Startet Webanwendung (Next.js) + Datenbank (PostgreSQL).
+#  Persistenz über benannte Volumes / Bind-Mounts.
+# ============================================================
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: yksystems-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      # Datenbankdaten persistent im Projektordner ./data
+      - ./data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - yk-net
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yksystems-web
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      SESSION_SECRET: ${SESSION_SECRET}
+      UPLOAD_DIR: ${UPLOAD_DIR:-/app/uploads}
+      INQUIRY_RECIPIENT: ${INQUIRY_RECIPIENT:-kontakt@yk-systems.de}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-YKsystems <kontakt@yk-systems.de>}
+      NODE_ENV: production
+    volumes:
+      # Hochgeladene Bilder persistent im Projektordner ./uploads
+      - ./uploads:/app/uploads
+    ports:
+      - "3000:3000"
+    networks:
+      - yk-net
+
+networks:
+  yk-net:
+    driver: bridge
