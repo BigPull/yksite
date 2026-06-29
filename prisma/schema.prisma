@@ -1,0 +1,72 @@
+// YKsystems – Datenbankschema (Prisma + PostgreSQL)
+// Modular gehalten, damit zukünftige Module (z.B. PDF-Rechnungen,
+// Testprotokolle, Ratenzahlungen) problemlos ergänzt werden können.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Admin-Benutzer. Es gibt keine öffentliche Registrierung.
+/// Der erste Datensatz wird beim Start aus der .env erzeugt.
+model AdminUser {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  passwordHash    String
+  // TOTP-Secret (base32). Null, bis 2FA eingerichtet wurde.
+  totpSecret      String?
+  twoFactorEnabled Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+/// Verfügbarkeitsstatus eines Systems.
+enum Availability {
+  IN_STOCK // Sofort lieferbar
+  IN_PRODUCTION // In Produktion
+  SOLD_OUT // Ausverkauft
+}
+
+/// Ein konfigurierbares System / eine Produktkarte.
+model System {
+  id           String       @id @default(cuid())
+  name         String
+  tagline      String // Kurzbeschreibung, z.B. "Der ideale Einstieg in modernes Gaming"
+  description  String // Längere Beschreibung
+  performanceClass String  @default("") // z.B. "1080p", "1440p", "4K & Streaming"
+  priceCents   Int          @default(0) // Preis in Cent, vermeidet Float-Rundungsfehler
+  currency     String       @default("EUR")
+  availability Availability @default(IN_PRODUCTION)
+  imagePath    String? // relativer Pfad im Upload-Volume, z.B. "/uploads/xyz.webp"
+  highlights   String[]     @default([]) // Komponenten-Highlights
+  orderIndex   Int          @default(0) // Reihenfolge im Grid (Drag-and-Drop)
+  published    Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([orderIndex])
+}
+
+/// Eingegangene Konfigurator-Anfrage (Multi-Step-Formular).
+model Inquiry {
+  id           String   @id @default(cuid())
+  name         String
+  email        String
+  budget       String
+  usage        String
+  games        String?
+  resolution   String
+  refreshRate  String
+  aesthetics   String
+  notes        String?
+  // Roh-Snapshot aller Felder für spätere Auswertung / Module
+  payload      Json
+  emailSent    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+}

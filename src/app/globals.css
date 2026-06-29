@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #121212;
+  --foreground: #ededed;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Dezenter Lichtschein hinter dem Hero */
+.glow-bg {
+  background:
+    radial-gradient(60% 50% at 50% 0%, rgba(199, 255, 74, 0.08) 0%, rgba(18, 18, 18, 0) 70%),
+    #121212;
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-accent px-6 py-3
+      font-semibold text-ink transition-all duration-300
+      hover:shadow-accent hover:brightness-105 active:scale-[0.98];
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-accent/40
+      px-6 py-3 font-semibold text-accent transition-all duration-300
+      hover:border-accent hover:bg-accent/10 active:scale-[0.98];
+  }
+  .card {
+    @apply rounded-xl border border-ink-500/70 bg-ink-700/60 p-6 backdrop-blur-sm;
+  }
+  /* Eleganter, flüssiger Scale-Effekt beim Hover (Vertrauens-Säulen & Produktkarten) */
+  .card-hover {
+    @apply transition-transform duration-300 ease-out will-change-transform
+      hover:scale-[1.035] hover:border-accent/50;
+  }
+  .section {
+    @apply mx-auto w-full max-w-6xl px-5 py-20 sm:px-8;
+  }
+  .eyebrow {
+    @apply text-sm font-semibold uppercase tracking-[0.2em] text-accent;
+  }
+  .field-label {
+    @apply mb-2 block text-sm font-medium text-neutral-300;
+  }
+  .field-input {
+    @apply w-full rounded-md border border-ink-500 bg-ink-800 px-4 py-3 text-neutral-100
+      outline-none transition focus:border-accent focus:ring-1 focus:ring-accent;
+  }
+}
+
+/* Reduktion von Bewegungen respektieren */
+@media (prefers-reduced-motion: reduce) {
+  .card-hover {
+    @apply transition-none hover:scale-100;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
